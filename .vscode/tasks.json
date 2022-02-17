@@ -1,0 +1,39 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "build",
+        "${workspaceFolder}/CUE4Parse.Example/CUE4Parse.Example.csproj",
+        "/property:GenerateFullPaths=true",
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "publish",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "publish",
+        "${workspaceFolder}/CUE4Parse.Example/CUE4Parse.Example.csproj",
+        "/property:GenerateFullPaths=true",
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "watch",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "watch",
+        "run",
+        "${workspaceFolder}/CUE4Parse.Example/CUE4Parse.Example.csproj",
+        "/property:GenerateFullPaths=true",
+      ],
+      "problemMatcher": "$msCompile"
+    }
+  ]
+}

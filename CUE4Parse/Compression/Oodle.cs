@@ -25,7 +25,7 @@ namespace CUE4Parse.Compression
         private const string WARFRAME_CDN_HOST = "https://origin.warframe.com";
         private const string WARFRAME_INDEX_PATH = "/origin/E926E926/index.txt.lzma";
         private static string WARFRAME_INDEX_URL => WARFRAME_CDN_HOST + WARFRAME_INDEX_PATH;
-        public const string OODLE_DLL_NAME = "oo2core_9_win64.dll";
+        public const string OODLE_DLL_NAME = "liblinoodle.so";
 
         public static OodleDecompress DecompressFunc;
 

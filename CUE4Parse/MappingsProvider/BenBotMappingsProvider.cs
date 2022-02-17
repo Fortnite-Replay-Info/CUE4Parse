@@ -17,14 +17,14 @@ namespace CUE4Parse.MappingsProvider
         {
             _specificVersion = specificVersion;
             _gameName = gameName;
-            _isWindows64Bit = Environment.Is64BitOperatingSystem && RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+            _isWindows64Bit = Environment.Is64BitOperatingSystem;
             Reload();
         }
-        
+
         public const string BenMappingsEndpoint = "https://benbot.app/api/v1/mappings";
-        
+
         private readonly HttpClient _client = new HttpClient { Timeout = TimeSpan.FromSeconds(2), DefaultRequestHeaders = { { "User-Agent", "CUE4Parse" } }};
-        
+
         public sealed override bool Reload()
         {
             return ReloadAsync().GetAwaiter().GetResult();
@@ -86,7 +86,7 @@ namespace CUE4Parse.MappingsProvider
                 return false;
             }
         }
-        
+
         private async Task<string?> LoadEndpoint(string url)
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -100,7 +100,7 @@ namespace CUE4Parse.MappingsProvider
                 return null;
             }
         }
-        
+
         private async Task<byte[]?> LoadEndpointBytes(string url)
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, url);
