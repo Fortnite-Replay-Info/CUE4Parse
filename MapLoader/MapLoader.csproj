@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
+        <Nullable>enable</Nullable>
         <OutputType>Exe</OutputType>
         <TargetFramework>net6.0</TargetFramework>
     </PropertyGroup>
@@ -18,6 +19,7 @@
     <ItemGroup>
       <ProjectReference Include="..\CUE4Parse-Conversion\CUE4Parse-Conversion.csproj" />
       <ProjectReference Include="..\CUE4Parse\CUE4Parse.csproj" />
+      <ProjectReference Include="..\CUE4Parse-Fortnite\CUE4Parse-Fortnite.csproj" />
     </ItemGroup>
 
     <ItemGroup>

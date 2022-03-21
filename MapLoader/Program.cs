@@ -13,16 +13,15 @@ namespace MapParsing
   public static class Program
   {
     private const string _gameDirectory = "/home/xnocken/Games/Fortnite/FortniteGame/Content/Paks";
-    private const string _aesKey = "0x6DAA4CCE14CB94598DA8B0C07F1386867DC73FA644B92900ADCEF89F26D159DC";
-
-    private const string _objectPath = "FortniteGame/Content/Athena/Artemis/maps/artemis_poi_foundations.umap";
+    private const string _aesKey = "0x53839BA2A77AE393588184ACBD18EDBC935CA60D554F9D29BC3F135E426C4A6F";
 
     public static void Main(string[] args)
     {
       var provider = new DefaultFileProvider(_gameDirectory, SearchOption.TopDirectoryOnly, true, new VersionContainer(EGame.GAME_UE5_LATEST));
       provider.Initialize(); // will scan local files and read them to know what it has to deal with (PAK/UTOC/UCAS/UASSET/UMAP)
-      provider.SubmitKey(new FGuid(), new FAesKey(_aesKey)); // decrypt basic info (1 guid - 1 key)
+      // provider.SubmitKey(new FGuid(), new FAesKey(_aesKey)); // decrypt basic info (1 guid - 1 key)
 
+      provider.LoadAesKeys();
       provider.LoadMappings(); // needed to read Fortnite assets
       provider.LoadLocalization(ELanguage.English); // explicit enough
 
@@ -33,10 +32,18 @@ namespace MapParsing
         "Tiered_Chest_Apollo_IceBox_C", // ice
         "BGA_Athena_SCMachine_Redux_C", // reboot van
         "Tiered_Athena_FloorLoot_01_C", // floor loot spawns
+        "Athena_Prop_SilkyBingo_C", // slurp barrels
+        "Athena_Prop_SilkyTanker_C", // slurp truck
+        "BP_Athena_Environmental_ZipLine_Spline_C", // zipline splines
+        "Tiered_Safe_Athena_C", // safe
       }, provider);
 
       Stopwatch stopWatch = new Stopwatch();
       stopWatch.Start();
+
+      var maps = mapLoader.FindAssets("FortniteGame/Content/Athena");
+
+      mapLoader.ParseWeapons();
 
       var exports = mapLoader.LoadMapRecursive("FortniteGame/Content/Athena/Artemis/maps/artemis_terrain", new FVector(0), new FRotator(0f));
 

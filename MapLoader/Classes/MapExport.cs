@@ -3,7 +3,7 @@ using CUE4Parse.UE4.Objects.Core.Math;
 
 namespace MapParsing.Classes
 {
-  public class Export
+  public class MapExport
   {
     public FVector Position;
     public UObject Object;

@@ -52,6 +52,12 @@ namespace CUE4Parse.FileProvider.Vfs
             }
         }
 
+        public void LoadAesKeys()
+        {
+            var aesKeyProvider = new BenBotAesKeyProvider();
+            aesKeyProvider.Reload(this);
+        }
+
         public IEnumerable<IAesVfsReader> UnloadedVfsByGuid(FGuid guid) => _unloadedVfs.Keys.Where(it => it.EncryptionKeyGuid == guid);
         public void UnloadAllVfs()
         {

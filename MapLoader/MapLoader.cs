@@ -4,8 +4,11 @@ using CUE4Parse.FileProvider;
 using CUE4Parse.UE4.Assets.Exports;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Objects.UObject;
+using CUE4Parse.UE4.Objects.Core.i18N;
 using System.Collections.Generic;
 using System;
+using Newtonsoft.Json;
+using CUE4Parse_Fortnite.Enums;
 
 namespace MapParsing
 {
@@ -13,7 +16,9 @@ namespace MapParsing
   {
     private string[] ClassesToSave;
     private DefaultFileProvider Provider;
-    private List<Export> Exports = new List<Export>();
+    private List<MapExport> MapObjects = new List<MapExport>();
+    private List<Weapon> Weapons = new List<Weapon>();
+    private Dictionary<string, Ammo> AmmoTypes = new Dictionary<string, Ammo>();
 
     public MapLoader(string[] classesToSave, DefaultFileProvider provider)
     {
@@ -25,7 +30,7 @@ namespace MapParsing
     {
       if (!Provider.TryLoadPackage(filename, out var package))
       {
-        Console.WriteLine("Unable to load package:" + filename);
+        Console.WriteLine("Unable to load package: " + filename);
 
         return new List<UObject>();
       }
@@ -48,21 +53,21 @@ namespace MapParsing
 
           var worldPos = mapPos + exportPos;
 
-          var exportClass = new Export
+          var exportClass = new MapExport
           {
             Position = worldPos,
             Object = export,
             StaticId = export.ToString(),
           };
 
-          Exports.Add(exportClass);
+          MapObjects.Add(exportClass);
         }
       }
 
       return allExports;
     }
 
-    public List<Export> LoadMapRecursive(string startPath, FVector mapPos, FRotator mapRot)
+    public List<MapExport> LoadMapRecursive(string startPath, FVector mapPos, FRotator mapRot)
     {
       var exports = LoadMap(startPath, mapPos, mapRot);
 
@@ -134,7 +139,121 @@ namespace MapParsing
         }
       }
 
-      return Exports;
+      return MapObjects;
+    }
+
+    public List<string> FindAssets(string path, string notPath = null)
+    {
+      var result = new List<string>();
+      var lowerPath = path.ToLower();
+
+      foreach (var filePath in this.Provider.Files.Keys)
+      {
+        if (filePath.Contains(lowerPath) && (notPath == null || !filePath.Contains(notPath.ToLower()) && !filePath.EndsWith(".ubulk")))
+        {
+          result.Add(filePath);
+        }
+      }
+
+      return result;
+    }
+
+    public UObject? LoadObject(string path)
+    {
+      if (!Provider.TryLoadPackage(path, out var package))
+      {
+        Console.WriteLine("Unable to load package:" + path);
+
+        return null;
+      }
+
+      var allExports = package.GetExports();
+
+      foreach (var export in allExports)
+      {
+        if (export.Flags.HasFlag(EObjectFlags.RF_ClassDefaultObject) || export.Flags.HasFlag(EObjectFlags.RF_Standalone))
+        {
+          return export;
+        }
+      }
+
+      return null;
+    }
+
+    private void ParseAmmo()
+    {
+      var ammoPaths = FindAssets("fortnitegame/content/Athena/Items/Ammo/");
+
+      foreach (var path in ammoPaths)
+      {
+        var ammoExport = LoadObject(path);
+
+        var name = (FText?)ReadProperty("DisplayName", ammoExport, typeof(FText));
+        var description = (FText?)ReadProperty("Description", ammoExport, typeof(FText));
+        var largePreviewImage = (FSoftObjectPath?)ReadProperty("LargePreviewImage", ammoExport, typeof(FSoftObjectPath));
+        var bSupportsQuickbarFocus = (bool?)ReadProperty("bSupportsQuickbarFocus", ammoExport, typeof(bool));
+        var rarity = (EFortRarity?)ReadProperty("Rarity", ammoExport, typeof(EFortRarity));
+
+        var ammo = new Ammo
+        {
+          Name = name == null ? null : name.Text,
+          Description = description == null ? null : description.Text,
+          Id = ammoExport.Name,
+          PathName = ammoExport.GetPathName(),
+          LargePreviewImage = largePreviewImage == null ? null : ((FSoftObjectPath)largePreviewImage).AssetPathName.PlainText,
+          bSupportsQuickbarFocus = bSupportsQuickbarFocus == null ? false : (bool)bSupportsQuickbarFocus,
+          Rarity = rarity == null ? EFortRarity.Common : (EFortRarity)rarity,
+        };
+
+        AmmoTypes.Add(ammo.PathName, ammo);
+      }
+    }
+
+    public void ParseWeapons()
+    {
+      ParseAmmo();
+
+      var weaponPaths = FindAssets("fortnitegame/content/athena/items/weapons/", "fortnitegame/content/athena/items/weapons/wid_harvest");
+
+      foreach (var path in weaponPaths)
+      {
+        var weaponExport = LoadObject(path);
+
+        if (weaponExport == null)
+        {
+          Console.WriteLine("Failed to load weapon: " + path);
+
+          continue;
+        }
+
+        var ammoData = (FSoftObjectPath?)ReadProperty("AmmoData", weaponExport, typeof(FSoftObjectPath));
+        var name = (FText?)ReadProperty("DisplayName", weaponExport, typeof(FText));
+        var description = (FText?)ReadProperty("Description", weaponExport, typeof(FText));
+        var largePreviewImage = (FSoftObjectPath?)ReadProperty("LargePreviewImage", weaponExport, typeof(FSoftObjectPath));
+        var rarity = (EFortRarity?)ReadProperty("Rarity", weaponExport, typeof(EFortRarity));
+        var actorPathName = (FSoftObjectPath?)ReadProperty("WeaponActorClass", weaponExport, typeof(FSoftObjectPath));
+
+        var weapon = new Weapon
+        {
+          Name = name == null ? null : name.Text,
+          Description = description == null ? null : description.Text,
+          Id = weaponExport.Name,
+          PathName = weaponExport.GetPathName(),
+          LargePreviewImage = largePreviewImage == null ? null : ((FSoftObjectPath)largePreviewImage).AssetPathName.PlainText,
+          Rarity = rarity == null ? EFortRarity.Common : (EFortRarity)rarity,
+          ActorPathName = actorPathName == null ? null : ((FSoftObjectPath)actorPathName).AssetPathName.PlainText,
+        };
+
+        if (ammoData != null)
+        {
+          if (AmmoTypes.TryGetValue(((FSoftObjectPath)ammoData).AssetPathName.PlainText, out var ammoType))
+          {
+            weapon.Ammo = ammoType.Id;
+          }
+        }
+
+        Weapons.Add(weapon);
+      }
     }
 
     private FPropertyTag GetProperty(string propertyName, UObject element)
@@ -157,6 +276,15 @@ namespace MapParsing
       }
 
       return property.Tag.GetValue(type);
+    }
+
+    private FName? ReadStruct(string propertyName, UObject element)
+    {
+      var property = GetProperty(propertyName, element);
+
+      var structt = (FStructFallback)property.Tag.GetValue(typeof(FStructFallback));
+
+      return (FName)structt.Properties[0].Tag.GetValue(typeof(FName));
     }
   }
 }
