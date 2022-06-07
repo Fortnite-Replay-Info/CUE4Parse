@@ -25,26 +25,13 @@ namespace MapParsing
       provider.LoadMappings(); // needed to read Fortnite assets
       provider.LoadLocalization(ELanguage.English); // explicit enough
 
-      var mapLoader = new MapLoader(new string[] {
-        "Tiered_Chest_Athena_C", // chests
-        "Tiered_Ammo_Athena_C", // ammo box
-        "Tiered_Chest_Athena_FactionChest_IO_NoLocks_C", // henchman chests
-        "Tiered_Chest_Apollo_IceBox_C", // ice
-        "BGA_Athena_SCMachine_Redux_C", // reboot van
-        "Tiered_Athena_FloorLoot_01_C", // floor loot spawns
-        "Athena_Prop_SilkyBingo_C", // slurp barrels
-        "Athena_Prop_SilkyTanker_C", // slurp truck
-        "BP_Athena_Environmental_ZipLine_Spline_C", // zipline splines
-        "Tiered_Safe_Athena_C", // safe
-      }, provider);
+      var mapLoader = new MapLoader(provider);
 
       Stopwatch stopWatch = new Stopwatch();
       stopWatch.Start();
 
-      var maps = mapLoader.FindAssets("FortniteGame/Content/Athena");
 
-      mapLoader.ParseWeapons();
-
+      mapLoader.PrepareMapOverlays();
       var exports = mapLoader.LoadMapRecursive("FortniteGame/Content/Athena/Artemis/maps/artemis_terrain", new FVector(0), new FRotator(0f));
 
       stopWatch.Stop();
