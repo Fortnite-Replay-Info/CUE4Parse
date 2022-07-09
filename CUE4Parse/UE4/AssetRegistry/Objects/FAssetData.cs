@@ -23,8 +23,7 @@ namespace CUE4Parse.UE4.AssetRegistry.Objects
         {
             ObjectPath = Ar.ReadFName();
             PackagePath = Ar.ReadFName();
-            AssetClass = Ar.ReadFName();
-
+            AssetClass = Ar.Version >= FAssetRegistryVersionType.ClassPaths ? new FTopLevelAssetPath(Ar).AssetName : Ar.ReadFName();
             PackageName = Ar.ReadFName();
             AssetName = Ar.ReadFName();
 
@@ -52,7 +51,7 @@ namespace CUE4Parse.UE4.AssetRegistry.Objects
 
             writer.WritePropertyName("AssetName");
             serializer.Serialize(writer, value.AssetName);
-
+            
             writer.WritePropertyName("AssetClass");
             serializer.Serialize(writer, value.AssetClass);
 
