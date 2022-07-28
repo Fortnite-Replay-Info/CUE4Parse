@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using CUE4Parse.UE4.AssetRegistry.Readers;
 using CUE4Parse.UE4.Objects.UObject;
 
 namespace CUE4Parse.UE4.AssetRegistry.Objects
@@ -9,9 +10,9 @@ namespace CUE4Parse.UE4.AssetRegistry.Objects
         public readonly FName Object;
         public readonly FName Package;
 
-        public FAssetRegistryExportPath(FAssetRegistryReader Ar)
+        public FAssetRegistryExportPath(FAssetRegistryArchive Ar)
         {
-            Class = Ar.ReadFName();
+            Class = Ar.Version >= FAssetRegistryVersionType.ClassPaths ? new FTopLevelAssetPath(Ar).AssetName : Ar.ReadFName();
             Object = Ar.ReadFName();
             Package = Ar.ReadFName();
         }

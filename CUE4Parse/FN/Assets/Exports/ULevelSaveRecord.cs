@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
+using CUE4Parse.UE4.Assets;
 using CUE4Parse.UE4.Assets.Exports;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Assets.Utils;
-using CUE4Parse.UE4.Exceptions;
 using CUE4Parse.UE4.Objects.Core.Math;
 using CUE4Parse.UE4.Objects.Core.Misc;
 using CUE4Parse.UE4.Objects.UObject;
@@ -47,12 +48,17 @@ namespace CUE4Parse.FN.Assets.Exports
         InitialUEFiveChange,
         AddedPersistenceRequired,
         AddedLevelInstance,
+        AddedInnerArchiverSerialization,
+        AddedHardReferenceTracking,
+        AddedDataHeaderSize,
+        AddedCrossReferenceSaving,
+        SpawningActorsWithConsistentName,
 
         VersionPlusOne,
         LatestVersion = VersionPlusOne - 1
     }
 
-    public class FLevelSaveRecordArchive : FAssetArchive
+    public class FLevelSaveRecordArchive : FAssetArchive // FObjectAndNameAsStringProxyArchive?
     {
         protected readonly FArchive InnerArchive;
         public readonly ELevelSaveRecordVersion Version;
@@ -105,6 +111,18 @@ namespace CUE4Parse.FN.Assets.Exports
         public override object Clone() => new FLevelSaveRecordArchive((FArchive) InnerArchive.Clone(), Version);
 
         public override FName ReadFName() => ReadFString();
+
+        public override Lazy<T?> ReadObject<T>() where T : class
+        {
+            var path = ReadFString();
+            return new Lazy<T?>(() =>
+            {
+                Debug.Assert(Owner.Provider != null, "Owner.Provider != null");
+                if (Owner.Provider.TryLoadObject<T>(path, out var obj))
+                    return obj;
+                return null;
+            });
+        }
     }
 
     [StructFallback]
@@ -115,6 +133,8 @@ namespace CUE4Parse.FN.Assets.Exports
         public FActorComponentRecord[] ActorComponents;
         public byte[]? ActorData;
         public uint DataHash;
+        public short LevelRecordSaveVersion;
+        public bool bUsingRecordDataReferenceTable;
 
         public FActorTemplateRecord(FLevelSaveRecordArchive Ar)
         {
@@ -175,6 +195,21 @@ namespace CUE4Parse.FN.Assets.Exports
             ActorComponents = fallback.GetOrDefault<FActorComponentRecord[]>(nameof(ActorComponents));
             ActorData = fallback.GetOrDefault<byte[]>(nameof(ActorData));
             DataHash = fallback.GetOrDefault<uint>(nameof(DataHash));
+            LevelRecordSaveVersion = fallback.GetOrDefault<short>(nameof(LevelRecordSaveVersion));
+            bUsingRecordDataReferenceTable = fallback.GetOrDefault<bool>(nameof(bUsingRecordDataReferenceTable));
+        }
+
+        public FStructFallback ReadActorData(IPackage owner, ELevelSaveRecordVersion SaveVersion)
+        {
+            if (ActorData != null && !bUsingRecordDataReferenceTable)
+            {
+                var Ar = new FLevelSaveRecordArchive(new FAssetArchive(new FByteArchive("ActorData Reader", ActorData), owner), SaveVersion);
+                var flags = owner.Summary.PackageFlags; owner.Summary.PackageFlags &= ~EPackageFlags.PKG_UnversionedProperties;
+                var props = new FStructFallback(Ar);
+                owner.Summary.PackageFlags = flags; // restore flags
+                return props;
+            }
+            return new FStructFallback();
         }
     }
 
@@ -347,6 +382,7 @@ namespace CUE4Parse.FN.Assets.Exports
         public string IslandTemplateId; // UnknownData03[0x48]
         public byte NavmeshRequired; // TODO Find out its enum values
         public bool bRequiresGridPlacement;
+        public List<FStructFallback> ActorData;
 
         public override void Deserialize(FAssetArchive Ar, long validPos)
         {
@@ -359,10 +395,19 @@ namespace CUE4Parse.FN.Assets.Exports
             }
             else
             {
-                if (SaveVersion <= ELevelSaveRecordVersion.AddedLevelInstance)
-                    Ar.Position += 1; //var _ = Ar.ReadByte(); // 2 almost? every time
+                if (SaveVersion >= ELevelSaveRecordVersion.AddedLevelInstance)
+                    Ar.Position += 1; // var _ = Ar.ReadByte(); // 2 almost? every time
 
                 base.Deserialize(Ar, validPos);
+
+                ActorData = new List<FStructFallback>();
+                foreach (var kv in GetOrDefault<UScriptMap>("TemplateRecords").Properties)
+                {
+                    var val = kv.Value.GetValue(typeof(FActorTemplateRecord));
+                    var templeteRecords = val is FActorTemplateRecord rec ? rec : null;
+                    if (templeteRecords is null) continue;
+                    ActorData.Add( templeteRecords.ReadActorData(Owner, SaveVersion));
+                }
             }
         }
 
@@ -422,6 +467,12 @@ namespace CUE4Parse.FN.Assets.Exports
             {
                 writer.WritePropertyName("TemplateRecords");
                 serializer.Serialize(writer, TemplateRecords);
+            }
+
+            if (ActorData is { Count: > 0 })
+            {
+                writer.WritePropertyName("ActorData");
+                serializer.Serialize(writer, ActorData);
             }
 
             if (ActorInstanceRecords is { Count: > 0 })
