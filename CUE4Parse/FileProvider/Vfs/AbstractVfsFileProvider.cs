@@ -48,13 +48,13 @@ namespace CUE4Parse.FileProvider.Vfs
         {
             if (GameName.Equals("FortniteGame", StringComparison.OrdinalIgnoreCase))
             {
-                MappingsContainer = new BenBotMappingsProvider("fortnitegame");
+                MappingsContainer = new CentralMappingsProvider("fortnitegame");
             }
         }
 
         public void LoadAesKeys()
         {
-            var aesKeyProvider = new BenBotAesKeyProvider();
+            var aesKeyProvider = new CentralAesKeyProvider();
             aesKeyProvider.Reload(this);
         }
 
