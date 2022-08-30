@@ -1,8 +1,8 @@
 using CUE4Parse.UE4.Assets.Exports;
 using CUE4Parse.UE4.Objects.Core.Math;
-using MapLoader.Attributes;
+using FileParsing.Attributes;
 
-namespace MapLoader.Classes.Map
+namespace FileParsing.Classes.Map
 {
   [MapId("B_Cooler_Container_Spawner_C")]
   class CoolerContainer : AbstractMapObject

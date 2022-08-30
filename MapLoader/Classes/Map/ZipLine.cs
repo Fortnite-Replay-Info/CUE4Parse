@@ -1,9 +1,9 @@
 using CUE4Parse.UE4.Assets.Exports;
 using CUE4Parse.UE4.Objects.Core.Math;
-using MapLoader.Attributes;
+using FileParsing.Attributes;
 using System;
 
-namespace MapLoader.Classes.Map
+namespace FileParsing.Classes.Map
 {
   [MapId("BP_Athena_Environmental_ZipLine_Spline_C")]
   class ZipLine : AbstractMapObject

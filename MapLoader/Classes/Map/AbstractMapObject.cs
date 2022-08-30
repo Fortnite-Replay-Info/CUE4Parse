@@ -4,7 +4,7 @@ using System;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Objects.UObject;
 
-namespace MapLoader.Classes.Map
+namespace FileParsing.Classes.Map
 {
   public abstract class AbstractMapObject
   {
@@ -13,18 +13,29 @@ namespace MapLoader.Classes.Map
     public string Type;
     private FVector ParentPos;
     private FRotator ParentRot;
+    protected UObject RootComponent;
 
     public AbstractMapObject(UObject data, FVector parentPos, FRotator parentRot)
     {
+      StaticId = data.ToString();
+      Type = data.Class.Name;
+
       ParentPos = parentPos;
       ParentRot = parentRot;
 
-      var rootComponenent = (UObject)ReadProperty("RootComponent", data, typeof(UObject));
-      var exportPos = (FVector)ReadProperty("RelativeLocation", rootComponenent, typeof(FVector));
+      RootComponent = (UObject)ReadProperty("RootComponent", data, typeof(UObject));
+
+      if (RootComponent == null) {
+        return;
+      }
+
+      var exportPos = (FVector)ReadProperty("RelativeLocation", RootComponent, typeof(FVector));
+
+      if (exportPos == null) {
+        return;
+      }
 
       Position = GetOffsetPosition(exportPos);
-      StaticId = data.ToString();
-      Type = data.Class.Name;
     }
 
     public FVector GetOffsetPosition(FVector pos)
@@ -51,6 +62,7 @@ namespace MapLoader.Classes.Map
 
     protected object? ReadProperty(string propertyName, UObject element, Type type)
     {
+
       var property = element.Properties.Find(x => x.Name.Text == propertyName);
 
       if (property == null)
@@ -69,5 +81,18 @@ namespace MapLoader.Classes.Map
 
       return (FName)structt.Properties[0].Tag.GetValue(typeof(FName));
     }
+
+    // protected FName[]? GetGameplayTags(string propertyName, UObject element)
+    // {
+    //   var property = GetProperty(propertyName, element);
+
+    //   var structt = (UScriptStruct)property.Tag.GetValue(typeof(UScriptStruct));
+
+    //   FName[] gude = (FName[])structt.StructType;
+
+    //   var tag = new FName[0];
+
+    //   return tag;
+    // }
   }
 }

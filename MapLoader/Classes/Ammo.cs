@@ -1,7 +1,7 @@
 using CUE4Parse_Fortnite.Enums;
 
 
-namespace MapParsing.Classes
+namespace FileParsing.Classes
 {
   class Ammo
   {

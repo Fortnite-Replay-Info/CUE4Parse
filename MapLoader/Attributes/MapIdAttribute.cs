@@ -1,4 +1,4 @@
-namespace MapLoader.Attributes
+namespace FileParsing.Attributes
 {
   using System;
   using System.Collections.Generic;

@@ -7,8 +7,9 @@ using CUE4Parse.UE4.Objects.Core.Misc;
 using CUE4Parse.UE4.Objects.Core.Math;
 using CUE4Parse.UE4.Versions;
 using Newtonsoft.Json;
+using FileParsing.Classes.Loaders;
 
-namespace MapParsing
+namespace FileParsing
 {
   public static class Program
   {
@@ -25,14 +26,18 @@ namespace MapParsing
       provider.LoadMappings(); // needed to read Fortnite assets
       provider.LoadLocalization(ELanguage.English); // explicit enough
 
-      var mapLoader = new MapLoader(provider);
+      var mapLoader = new MapObjectLoader(provider);
 
       Stopwatch stopWatch = new Stopwatch();
       stopWatch.Start();
 
+      // var ok = mapLoader.LoadObject("fortnitegame/plugins/gamefeatures/specialeventgameplay/config/specialeventgameplaygame.ini");
 
-      mapLoader.PrepareMapOverlays();
-      var exports = mapLoader.LoadMapRecursive("FortniteGame/Content/Athena/Artemis/maps/artemis_terrain", new FVector(0), new FRotator(0f));
+      mapLoader.LoadMapRecursive("fortnitegame/content/athena/artemis/maps/artemis_terrain", new FVector(0), new FRotator(0f));
+
+      // mapLoader.LoadFiles();
+
+      var mapExports = mapLoader.GetResult();
 
       stopWatch.Stop();
 
@@ -44,9 +49,9 @@ namespace MapParsing
           ts.Milliseconds / 10);
       Console.WriteLine("RunTime " + elapsedTime);
 
-      var json = JsonConvert.SerializeObject(exports, Formatting.Indented);
+      var mapExportsJson = JsonConvert.SerializeObject(mapExports, Formatting.Indented);
 
-      File.WriteAllText("result.json", json);
+      File.WriteAllText("result/result-mapObjects.json", mapExportsJson);
     }
   }
 }

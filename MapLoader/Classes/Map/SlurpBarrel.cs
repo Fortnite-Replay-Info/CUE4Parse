@@ -1,8 +1,8 @@
 using CUE4Parse.UE4.Assets.Exports;
 using CUE4Parse.UE4.Objects.Core.Math;
-using MapLoader.Attributes;
+using FileParsing.Attributes;
 
-namespace MapLoader.Classes.Map
+namespace FileParsing.Classes.Map
 {
   [MapId("Athena_Prop_SilkyBingo_C")]
   class SlurpBarrel : AbstractMapObject
