@@ -1,5 +1,7 @@
-﻿using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+﻿using System.Numerics;
+using System.Runtime.CompilerServices;
+using CUE4Parse.UE4.Readers;
+using CUE4Parse.UE4.Versions;
 using CUE4Parse.Utils;
 
 namespace CUE4Parse.UE4.Objects.Core.Math
@@ -9,8 +11,7 @@ namespace CUE4Parse.UE4.Objects.Core.Math
      *
      * All rotation values are stored in degrees.
      */
-    [StructLayout(LayoutKind.Sequential)]
-    public struct FRotator : IUStruct
+    public class FRotator : IUStruct
     {
         private const float KindaSmallNumber = 1e-4f;
 
@@ -25,6 +26,7 @@ namespace CUE4Parse.UE4.Objects.Core.Math
         /** Rotation around the forward axis (around X axis), Tilting your head, 0=Straight, +Clockwise, -CCW. */
         public float Roll;
 
+        public FRotator() { }
         public FRotator(EForceInit forceInit) : this(0, 0, 0) {}
         public FRotator(float f) : this(f, f, f) { }
         public FRotator(float pitch, float yaw, float roll)
@@ -32,6 +34,22 @@ namespace CUE4Parse.UE4.Objects.Core.Math
             Pitch = pitch;
             Yaw = yaw;
             Roll = roll;
+        }
+
+        public FRotator(FArchive Ar)
+        {
+            if (Ar.Ver >= EUnrealEngineObjectUE5Version.LARGE_WORLD_COORDINATES)
+            {
+                Pitch = (float) Ar.Read<double>();
+                Yaw = (float) Ar.Read<double>();
+                Roll = (float) Ar.Read<double>();
+            }
+            else
+            {
+                Pitch = Ar.Read<float>();
+                Yaw = Ar.Read<float>();
+                Roll = Ar.Read<float>();
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -141,7 +159,7 @@ namespace CUE4Parse.UE4.Objects.Core.Math
             // map [0->256) to [0->360)
             return angle * 360.0f / 256.0f;
         }
-        
+
         public static ushort CompressAxisToShort(float angle)
         {
             // map [0->360) to [0->65536) and mask off any winding
@@ -168,5 +186,7 @@ namespace CUE4Parse.UE4.Objects.Core.Math
         public override bool Equals(object? obj) => obj is FRotator other && Equals(other, 0f);
 
         public override string ToString() => $"P={Pitch} Y={Yaw} R={Roll}";
+
+        public static implicit operator Vector3(FRotator r) => new(r.Roll, r.Yaw, r.Pitch);
     }
 }

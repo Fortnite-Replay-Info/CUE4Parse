@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using CUE4Parse.UE4.Readers;
 
 namespace CUE4Parse.UE4.Objects.Core.Math
 {
@@ -34,6 +35,13 @@ namespace CUE4Parse.UE4.Objects.Core.Math
             IsValid = isValid;
         }
 
+        public FBox(FArchive Ar)
+        {
+            Min = new FVector(Ar);
+            Max = new FVector(Ar);
+            IsValid = Ar.Read<byte>();
+        }
+
         public FBox(FVector[] points)
         {
             Min = new FVector(0f, 0f, 0f);
@@ -41,7 +49,8 @@ namespace CUE4Parse.UE4.Objects.Core.Math
             IsValid = 0;
             foreach (var it in points)
             {
-                this += it;
+                Min += it;
+                Max += it;
             }
         }
 
@@ -80,7 +89,7 @@ namespace CUE4Parse.UE4.Objects.Core.Math
             }
             return new FBox(other, other, 1);
         }
-        
+
         public static FBox operator +(FBox a, FBox other)
         {
             if (a.IsValid != 0)
@@ -91,6 +100,11 @@ namespace CUE4Parse.UE4.Objects.Core.Math
             }
             return new FBox(other.Min, other.Max, other.IsValid);
         }
+
+        public static FBox operator *(FBox a, float scale) =>
+            new FBox(
+                new FVector(a.Min.X * scale, a.Min.Y * scale, a.Min.Z * scale),
+                new FVector(a.Max.X * scale, a.Max.Y * scale, a.Max.Z * scale));
 
         public FVector this[int i]
         {
@@ -112,21 +126,21 @@ namespace CUE4Parse.UE4.Objects.Core.Math
         /// <returns>The distance.</returns>
         public float ComputeSquaredDistanceToPoint(FVector point) =>
             FVector.ComputeSquaredDistanceFromBoxToPoint(Min, Max, point);
-        
+
         /// <summary>
         /// Increases the box size.
         /// </summary>
         /// <param name="w">The size to increase the volume by.</param>
         /// <returns>A new bounding box.</returns>
         public FBox ExpandBy(float w) => new FBox(Min - new FVector(w, w, w), Max + new FVector(w, w, w));
-        
+
         /// <summary>
         /// Increases the box size.
         /// </summary>
         /// <param name="v">The size to increase the volume by.</param>
         /// <returns>A new bounding box.</returns>
         public FBox ExpandBy(FVector v) => new FBox(Min - v, Max + v);
-        
+
         /// <summary>
         /// Increases the box size.
         /// </summary>
@@ -134,7 +148,7 @@ namespace CUE4Parse.UE4.Objects.Core.Math
         /// <param name="pos">The size to increase the volume by in the positive direction (positive values move the bounds outwards)</param>
         /// <returns>A new bounding box.</returns>
         public FBox ExpandBy(FVector neg, FVector pos) => new FBox(Min - neg, Max + pos);
-        
+
         /// <summary>
         /// Shifts the bounding box position.
         /// </summary>
@@ -179,7 +193,7 @@ namespace CUE4Parse.UE4.Objects.Core.Math
         {
             // start by considering the point inside the box
             var closestPoint = point;
-            
+
             // now clamp to inside box if it's outside
             if (point.X < Min.X)
             {
@@ -235,7 +249,7 @@ namespace CUE4Parse.UE4.Objects.Core.Math
 
             return true;
         }
-        
+
         /// <summary>
         /// Checks whether the given bounding box intersects this bounding box in the XY plane.
         /// </summary>
@@ -260,7 +274,7 @@ namespace CUE4Parse.UE4.Objects.Core.Math
             {
                 return new FBox(new FVector(0f, 0f, 0f), new FVector(0f, 0f, 0f));
             }
-            
+
             // otherwise they overlap
             // so find overlapping box
             var minVector = new FVector();
@@ -274,7 +288,7 @@ namespace CUE4Parse.UE4.Objects.Core.Math
 
             minVector.Z = System.Math.Max(Min.Z, other.Min.Z);
             maxVector.Z = System.Math.Min(Max.Z, other.Max.Z);
-            
+
             return new FBox(minVector, maxVector);
         }
 
@@ -285,7 +299,7 @@ namespace CUE4Parse.UE4.Objects.Core.Math
         /// <returns>true if location is inside this volume.</returns>
         public bool IsInside(FVector @in) => (@in.X > Min.X) && (@in.X < Max.X) && (@in.Y > Min.Y) && (@in.Y < Max.Y) &&
                                              (@in.Z > Min.Z) && (@in.Z < Max.Z);
-        
+
         /// <summary>
         /// Checks whether the given location is inside or on this box.
         /// </summary>
@@ -300,14 +314,14 @@ namespace CUE4Parse.UE4.Objects.Core.Math
         /// <param name="other">The box to test for encapsulation within the bounding volume.</param>
         /// <returns>true if box is inside this volume.</returns>
         public bool IsInside(FBox other) => IsInside(other.Min) && IsInside(other.Max);
-        
+
         /// <summary>
         /// Checks whether the given location is inside this box in the XY plane.
         /// </summary>
         /// <param name="in">The location to test for inside the bounding box.</param>
         /// <returns>true if location is inside this box in the XY plane.</returns>
         public bool IsInsideXY(FVector @in) => (@in.X > Min.X) && (@in.X < Max.X) && (@in.Y > Min.Y) && (@in.Y < Max.Y);
-        
+
         /// <summary>
         /// Checks whether the given box is fully encapsulated by this box in the XY plane.
         /// </summary>
