@@ -151,8 +151,11 @@ namespace FileParsing.Classes.Loaders.Abstract
                     if (prop.Tag.GenericValue.GetType() == typeof(FSoftObjectPath))
                     {
                         var genericValue = (FSoftObjectPath)prop.Tag.GenericValue;
+                        var path = genericValue.AssetPathName.PlainText;
 
-                        LoadMapRecursive(Provider.FixPath(genericValue.AssetPathName.PlainText), pos, rot);
+                        var pathWithoutExt = path.Split('.').First();
+
+                        LoadMapRecursive(Provider.FixPath(pathWithoutExt), pos, rot);
                     }
                 }
 

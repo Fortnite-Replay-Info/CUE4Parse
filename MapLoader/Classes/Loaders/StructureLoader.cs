@@ -30,7 +30,13 @@ namespace FileParsing.Classes.Loaders
         }
 
         UBlueprintGeneratedClass blueprint = (UBlueprintGeneratedClass)export.Class;
-        var path = Provider.FixPath(blueprint.ClassDefaultObject.Owner.Name);
+        var name = blueprint?.ClassDefaultObject?.Owner?.Name;
+
+        if (name == null) {
+          return;
+        }
+
+        var path = Provider.FixPath(name);
 
         if (!MappedObjects.TryGetValue(path, out var type))
         {

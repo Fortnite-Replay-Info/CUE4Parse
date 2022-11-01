@@ -25,12 +25,12 @@ namespace CUE4Parse.MappingsProvider
 
         private readonly HttpClient _client = new HttpClient { Timeout = TimeSpan.FromSeconds(2), DefaultRequestHeaders = { { "User-Agent", "CUE4Parse" } }};
 
-        public sealed override bool Reload()
+        public sealed override void Reload()
         {
-            return ReloadAsync().GetAwaiter().GetResult();
+            ReloadAsync().GetAwaiter().GetResult();
         }
 
-        public sealed override async Task<bool> ReloadAsync()
+        public async Task<bool> ReloadAsync()
         {
             try
             {
@@ -43,7 +43,7 @@ namespace CUE4Parse.MappingsProvider
                     return false;
                 }
                 var json =  JArray.Parse(jsonText);
-                var preferredCompression = _isWindows64Bit ? "Oodle" : "Brotli";
+                var preferredCompression = _isWindows64Bit ? "None" : "Brotli";
 
                 if (!json.HasValues)
                 {
@@ -77,7 +77,7 @@ namespace CUE4Parse.MappingsProvider
                     return false;
                 }
 
-                AddUsmap(usmapBytes, _gameName, usmapName!);
+                Load(usmapBytes);
                 return true;
             }
             catch (Exception e)

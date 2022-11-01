@@ -1,4 +1,4 @@
-using CUE4Parse_Fortnite.Enums;
+using CUE4Parse.GameTypes.FN.Enums;
 
 namespace FileParsing.Classes
 {

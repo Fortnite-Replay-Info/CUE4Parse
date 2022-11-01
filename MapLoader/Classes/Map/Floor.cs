@@ -13,7 +13,7 @@ namespace FileParsing.Classes.Map
     {
       var exportRot = (FRotator?)ReadProperty("RelativeRotation", RootComponent, typeof(FRotator));
 
-      if (exportRot == null)
+      if (exportRot is null)
       {
         return;
       }

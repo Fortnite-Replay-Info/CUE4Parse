@@ -1,4 +1,4 @@
-using CUE4Parse_Fortnite.Enums;
+using CUE4Parse.GameTypes.FN.Enums;
 using CUE4Parse.FileProvider;
 using CUE4Parse.UE4.Objects.Core.i18N;
 using CUE4Parse.UE4.Objects.UObject;

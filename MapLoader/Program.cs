@@ -8,6 +8,7 @@ using CUE4Parse.UE4.Objects.Core.Math;
 using CUE4Parse.UE4.Versions;
 using Newtonsoft.Json;
 using FileParsing.Classes.Loaders;
+using CUE4Parse.UE4.Assets.Exports.Texture;
 
 namespace FileParsing
 {
@@ -18,7 +19,7 @@ namespace FileParsing
 
     public static void Main(string[] args)
     {
-      var provider = new DefaultFileProvider(_gameDirectory, SearchOption.TopDirectoryOnly, true, new VersionContainer(EGame.GAME_UE5_LATEST));
+      var provider = new DefaultFileProvider(_gameDirectory, SearchOption.TopDirectoryOnly, true, new VersionContainer(EGame.GAME_UE5_LATEST, ETexturePlatform.DesktopMobile, new FPackageFileVersion(522, 1006), null, null));
       provider.Initialize(); // will scan local files and read them to know what it has to deal with (PAK/UTOC/UCAS/UASSET/UMAP)
       // provider.SubmitKey(new FGuid(), new FAesKey(_aesKey)); // decrypt basic info (1 guid - 1 key)
 
@@ -26,14 +27,15 @@ namespace FileParsing
       provider.LoadMappings(); // needed to read Fortnite assets
       provider.LoadLocalization(ELanguage.English); // explicit enough
 
-      var mapLoader = new MapObjectLoader(provider);
+      var mapLoader = new HeightMapLoader(provider);
 
       Stopwatch stopWatch = new Stopwatch();
       stopWatch.Start();
 
       // var ok = mapLoader.LoadObject("fortnitegame/plugins/gamefeatures/specialeventgameplay/config/specialeventgameplaygame.ini");
 
-      mapLoader.LoadMapRecursive("fortnitegame/content/athena/artemis/maps/artemis_terrain", new FVector(0), new FRotator(0f));
+      // mapLoader.LoadMapRecursive("fortnitegame/content/athena/artemis/maps/artemis_terrain", new FVector(0), new FRotator(0f));
+      mapLoader.GetHeightmaps();
 
       // mapLoader.LoadFiles();
 
@@ -51,7 +53,7 @@ namespace FileParsing
 
       var mapExportsJson = JsonConvert.SerializeObject(mapExports, Formatting.Indented);
 
-      File.WriteAllText("result/result-mapObjects.json", mapExportsJson);
+      File.WriteAllText("result/result-structures.json", mapExportsJson);
     }
   }
 }

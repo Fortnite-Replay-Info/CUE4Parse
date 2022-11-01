@@ -11,12 +11,12 @@ namespace FileParsing.Classes.Map
 
     public Wall(UObject data, FVector parentPos, FRotator parentRot) : base(data, parentPos, parentRot)
     {
-      var exportRot = (FRotator?)ReadProperty("RelativeRotation", RootComponent, typeof(FRotator));
+      FRotator? exportRot = (FRotator?)ReadProperty("RelativeRotation", RootComponent, typeof(FRotator));
 
-      if (exportRot == null)
+      if (exportRot is null)
       {
         return;
-      }
+      } 
 
       rotation = parentRot + (FRotator)exportRot;
     }
