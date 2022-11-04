@@ -184,6 +184,7 @@ namespace CUE4Parse.UE4.Assets.Exports.Material
                 if (tex == null) continue;
 
                 if (name.Contains("detail", StringComparison.CurrentCultureIgnoreCase) ||
+                    name.Contains("ws ", StringComparison.CurrentCultureIgnoreCase) ||
                     name.Contains("_2", StringComparison.CurrentCultureIgnoreCase)) continue;
 
                 Diffuse(name.Contains("dif", StringComparison.CurrentCultureIgnoreCase), 100, tex);
@@ -242,6 +243,37 @@ namespace CUE4Parse.UE4.Assets.Exports.Material
             // try to get diffuse texture when nothing found
             if (parameters.Diffuse == null && TextureParameterValues.Length == 1)
                 parameters.Diffuse = TextureParameterValues[0].ParameterValue.Load<UTexture>();
+        }
+
+        public override void GetParams(CMaterialParams2 parameters)
+        {
+            // get params from linked UMaterial3
+            if (Parent != null && Parent != this)
+                Parent.GetParams(parameters);
+
+            base.GetParams(parameters);
+
+            parameters.AppendAllProperties(Properties);
+
+            foreach (var textureParameter in TextureParameterValues)
+            {
+                if (textureParameter.ParameterValue.Load<UTexture>() is not { } texture)
+                    continue;
+                parameters.Textures[textureParameter.Name] = texture;
+            }
+
+            foreach (var vectorParameter in VectorParameterValues)
+            {
+                if (vectorParameter.ParameterValue is not { } vector)
+                    continue;
+                parameters.Colors[vectorParameter.Name] = vector;
+            }
+
+            foreach (var scalarParameter in ScalarParameterValues)
+                parameters.Scalars[scalarParameter.Name] = scalarParameter.ParameterValue;
+
+            if (BasePropertyOverrides != null)
+                parameters.IsTransparent = BasePropertyOverrides.BlendMode == EBlendMode.BLEND_Translucent;
         }
 
         public override void AppendReferencedTextures(IList<UUnrealMaterial> outTextures, bool onlyRendered)
