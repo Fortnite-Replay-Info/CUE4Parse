@@ -311,6 +311,11 @@ namespace CUE4Parse.UE4.Objects.UObject
 
             PackageSource = Ar.Read<int>();
 
+            if (Ar.Game == EGame.GAME_ArkSurvivalEvolved && (int) FileVersionLicenseeUE >= 10)
+            {
+                Ar.Position += 8;
+            }
+
             // No longer used: List of additional packages that are needed to be cooked for this package (ie streaming levels)
             // Keeping the serialization code for backwards compatibility without bumping the package version
             var additionalPackagesToCook = Ar.ReadArray(Ar.ReadFString);
@@ -344,7 +349,7 @@ namespace CUE4Parse.UE4.Objects.UObject
                 AssetRegistryDataOffset = (int)(AssetRegistryDataOffset ^ 0xEEB2CEC7);
             }
 
-            if (Ar.Game == EGame.GAME_SeaOfThieves)
+            if (Ar.Game is EGame.GAME_SeaOfThieves or EGame.GAME_GearsOfWar4)
             {
                 Ar.Position += 6; // no idea what's going on here.
             }
