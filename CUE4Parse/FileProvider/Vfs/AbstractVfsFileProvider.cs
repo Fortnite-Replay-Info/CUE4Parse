@@ -78,7 +78,8 @@ namespace CUE4Parse.FileProvider.Vfs
             var tasks = new LinkedList<Task>();
             foreach (var reader in _unloadedVfs.Keys)
             {
-                if (GlobalData == null && reader is IoStoreReader ioReader && reader.Name.Equals("global.utoc", StringComparison.OrdinalIgnoreCase))
+                if (GlobalData == null && reader is IoStoreReader ioReader &&
+                    (reader.Name.Equals("global.utoc", StringComparison.OrdinalIgnoreCase) || reader.Name.Equals("global_console_win.utoc", StringComparison.OrdinalIgnoreCase)))
                 {
                     GlobalData = new IoGlobalData(ioReader);
                 }
@@ -134,7 +135,8 @@ namespace CUE4Parse.FileProvider.Vfs
                 var key = it.Value;
                 foreach (var reader in UnloadedVfsByGuid(guid))
                 {
-                    if (GlobalData == null && reader is IoStoreReader ioReader && reader.Name.Equals("global.utoc", StringComparison.OrdinalIgnoreCase))
+                    if (GlobalData == null && reader is IoStoreReader ioReader &&
+                        (reader.Name.Equals("global.utoc", StringComparison.OrdinalIgnoreCase) || reader.Name.Equals("global_console_win.utoc", StringComparison.OrdinalIgnoreCase)))
                     {
                         GlobalData = new IoGlobalData(ioReader);
                     }

@@ -29,6 +29,7 @@ namespace CUE4Parse.UE4.Versions
             GAME_PlayerUnknownsBattlegrounds = GAME_UE4_16 + 1,
         GAME_UE4_17 = GameUtils.GameUe4Base + 17 << 4,
         GAME_UE4_18 = GameUtils.GameUe4Base + 18 << 4,
+            GAME_KingdomHearts3 = GAME_UE4_18 + 1,
         GAME_UE4_19 = GameUtils.GameUe4Base + 19 << 4,
         GAME_UE4_20 = GameUtils.GameUe4Base + 20 << 4,
             GAME_Borderlands3 = GAME_UE4_20 + 1,
@@ -36,6 +37,7 @@ namespace CUE4Parse.UE4.Versions
             GAME_StarWarsJediFallenOrder = GAME_UE4_21 + 1,
         GAME_UE4_22 = GameUtils.GameUe4Base + 22 << 4,
         GAME_UE4_23 = GameUtils.GameUe4Base + 23 << 4,
+            GAME_ApexLegendsMobile = GAME_UE4_23 + 1,
         GAME_UE4_24 = GameUtils.GameUe4Base + 24 << 4,
         GAME_UE4_25 = GameUtils.GameUe4Base + 25 << 4,
             GAME_RogueCompany = GAME_UE4_25 + 1,
@@ -46,6 +48,7 @@ namespace CUE4Parse.UE4.Versions
             GAME_ReadyOrNot = GAME_UE4_26 + 2,
             GAME_Valorant = GAME_UE4_26 + 3,
             GAME_TowerOfFantasy = GAME_UE4_26 + 4,
+            GAME_Dauntless = GAME_UE4_26 + 5,
 
         GAME_UE4_27 = GameUtils.GameUe4Base + 27 << 4,
             GAME_Splitgate = GAME_UE4_27 + 1,
