@@ -30,8 +30,8 @@ namespace CUE4Parse.UE4.Assets.Exports.Material
         public static readonly string[][] Diffuse = {
             new []
             {
-                "ShadedDiffuse", "Diffuse", "DiffuseTexture", "Diffuse A", "Albedo",
-                "Base Color", "BaseColor", "BC", "Color", "CO", "CO_", "CO_1",
+                "Trunk_BaseColor", "ShadedDiffuse", "Diffuse", "Diffuse_1", "DiffuseTexture", "Diffuse A", "Albedo",
+                "Base Color Texture", "BaseColorTexture", "Base Color", "BaseColor", "BC", "Color", "CO", "CO_", "CO_1", "Base_CO",
                 "Decal_Texture", "PetalDetailMap", "CliffTexture"
             },
             new []{ "Diffuse_Texture_2", "Diffuse B", "CO_2" },
@@ -46,7 +46,7 @@ namespace CUE4Parse.UE4.Assets.Exports.Material
         public static readonly string[][] Normals = {
             new []
             {
-                "Normals", "Normal", "NormalTexture", "NormalMap", "NM", "NM_1",
+                "Trunk_Normal", "Normals", "Normal", "NormalTexture", "Normal Texture", "NormalMap", "NM", "NM_1", "Base_NM",
                 "Texture A Normal", "CliffNormal"
             },
             new []{ "Normals_Texture_2", "Texture B Normal", "NM_2" },
@@ -61,23 +61,23 @@ namespace CUE4Parse.UE4.Assets.Exports.Material
         public static readonly string[][] SpecularMasks = {
             new []
             {
-                "SpecularMasks", "Specular", "SpecMap",
-                "MG", "ORM", "MRAE", "MRAS", "MRA", "MRS", "LP", "LP_1",
+                "Trunk_Specular", "SpecularMasks", "Specular", "SpecMap",
+                "MG", "ORM", "MRAE", "MRAS", "MRA", "MRS", "LP", "LP_1", "Base_LP",
                 "Cliff Spec Texture"
             },
             new []{ "SpecularMasks_2", "LP_2" },
-            new []{ "SpecularMasks_3" },
-            new []{ "SpecularMasks_4" },
-            new []{ "SpecularMasks_5" },
-            new []{ "SpecularMasks_6" },
-            new []{ "SpecularMasks_7" },
-            new []{ "SpecularMasks_8" }
+            new []{ "SpecularMasks_3", "LP_3" },
+            new []{ "SpecularMasks_4", "LP_4" },
+            new []{ "SpecularMasks_5", "LP_5" },
+            new []{ "SpecularMasks_6", "LP_6" },
+            new []{ "SpecularMasks_7", "LP_7" },
+            new []{ "SpecularMasks_8", "LP_8" }
         };
 
         public static readonly string[][] Emissive = {
             new []
             {
-                "Emissive", "EmissiveTexture", "EmissiveColor", "EmissiveMask"
+                "Emissive", "EmissiveTexture", "EmissiveColorTexture", "EmissiveColor", "EmissiveMask"
             },
             new []{ "L1_Emissive" },
             new []{ "L2_Emissive" },
@@ -91,15 +91,16 @@ namespace CUE4Parse.UE4.Assets.Exports.Material
         public static readonly string[][] DiffuseColors = {
             new []
             {
-                "ColorMult", "Color_mul", "Base Color", "BaseColor", "Color"
+                "ColorMult", "Color_mul", "Base Color", "BaseColor", "Color", "tex1_CO",
+                "ColorA"
             },
-            new []{ "" },
-            new []{ "" },
-            new []{ "" },
-            new []{ "" },
-            new []{ "" },
-            new []{ "" },
-            new []{ "" }
+            new []{ "tex2_CO", "ColorB" },
+            new []{ "tex3_CO", "ColorC" },
+            new []{ "tex4_CO", "ColorD" },
+            new []{ "tex5_CO", "ColorE" },
+            new []{ "tex6_CO", "ColorF" },
+            new []{ "tex7_CO", "ColorG" },
+            new []{ "tex8_CO", "ColorH" }
         };
 
         public static readonly string[][] EmissiveColors = {
@@ -119,6 +120,7 @@ namespace CUE4Parse.UE4.Assets.Exports.Material
         public readonly Dictionary<string, UUnrealMaterial> Textures = new ();
         public readonly Dictionary<string, FLinearColor> Colors = new ();
         public readonly Dictionary<string, float> Scalars = new ();
+        public readonly Dictionary<string, bool> Switchs = new ();
         public readonly Dictionary<string, object?> Properties = new ();
 
         public IEnumerable<UUnrealMaterial> GetTextures(IEnumerable<string> names)

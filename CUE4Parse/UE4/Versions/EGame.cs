@@ -1,4 +1,4 @@
-﻿using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
 
 namespace CUE4Parse.UE4.Versions
 {
@@ -31,6 +31,7 @@ namespace CUE4Parse.UE4.Versions
         GAME_UE4_18 = GameUtils.GameUe4Base + 18 << 4,
             GAME_KingdomHearts3 = GAME_UE4_18 + 1,
         GAME_UE4_19 = GameUtils.GameUe4Base + 19 << 4,
+            GAME_Paragon = GAME_UE4_19 + 1,
         GAME_UE4_20 = GameUtils.GameUe4Base + 20 << 4,
             GAME_Borderlands3 = GAME_UE4_20 + 1,
         GAME_UE4_21 = GameUtils.GameUe4Base + 21 << 4,
@@ -88,9 +89,9 @@ namespace CUE4Parse.UE4.Versions
             {
                 return game switch
                 {
-                    EGame.GAME_UE5_0 => new(522, 1004),
-                    EGame.GAME_UE5_1 => new(522, 1006),
-                    _ => new((int) EUnrealEngineObjectUE4Version.AUTOMATIC_VERSION, (int) EUnrealEngineObjectUE5Version.AUTOMATIC_VERSION)
+                    EGame.GAME_UE5_0 => new FPackageFileVersion(522, 1004),
+                    EGame.GAME_UE5_1 => new FPackageFileVersion(522, 1008),
+                    _ => new FPackageFileVersion((int) EUnrealEngineObjectUE4Version.AUTOMATIC_VERSION, (int) EUnrealEngineObjectUE5Version.AUTOMATIC_VERSION)
                 };
             }
 
