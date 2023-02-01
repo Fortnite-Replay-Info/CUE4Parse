@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.Core.Math;
@@ -8,9 +9,9 @@ namespace CUE4Parse.UE4.Assets.Exports.Material
 {
     public class UMaterialInstanceConstant : UMaterialInstance
     {
-        public FScalarParameterValue[] ScalarParameterValues;
-        public FTextureParameterValue[] TextureParameterValues;
-        public FVectorParameterValue[] VectorParameterValues;
+        public FScalarParameterValue[] ScalarParameterValues = Array.Empty<FScalarParameterValue>();
+        public FTextureParameterValue[] TextureParameterValues = Array.Empty<FTextureParameterValue>();
+        public FVectorParameterValue[] VectorParameterValues = Array.Empty<FVectorParameterValue>();
 
         public override void Deserialize(FAssetArchive Ar, long validPos)
         {
@@ -243,21 +244,33 @@ namespace CUE4Parse.UE4.Assets.Exports.Material
                 parameters.Diffuse = TextureParameterValues[0].ParameterValue.Load<UTexture>();
         }
 
-        public override void GetParams(CMaterialParams2 parameters)
+        public override void GetParams(CMaterialParams2 parameters, EMaterialFormat format)
         {
-            // get params from linked UMaterial3
-            if (Parent != null && Parent != this)
-                Parent.GetParams(parameters);
-
-            base.GetParams(parameters);
+            if (format != EMaterialFormat.FirstLayer && Parent != null && Parent != this)
+                Parent.GetParams(parameters, format);
 
             parameters.AppendAllProperties(Properties);
+            base.GetParams(parameters, format);
 
             foreach (var textureParameter in TextureParameterValues)
             {
-                if (textureParameter.ParameterValue.Load<UTexture>() is not { } texture)
+                if (!textureParameter.ParameterValue.TryLoad(out UTexture texture))
                     continue;
-                parameters.Textures[textureParameter.Name] = texture;
+
+                var name = textureParameter.Name;
+                if (Regex.IsMatch(name, CMaterialParams2.RegexDiffuse, RegexOptions.IgnoreCase))
+                    parameters.Textures[CMaterialParams2.FallbackDiffuse] = texture;
+
+                if (Regex.IsMatch(name, CMaterialParams2.RegexNormals, RegexOptions.IgnoreCase))
+                    parameters.Textures[CMaterialParams2.FallbackNormals] = texture;
+
+                if (Regex.IsMatch(name, CMaterialParams2.RegexSpecularMasks, RegexOptions.IgnoreCase))
+                    parameters.Textures[CMaterialParams2.FallbackSpecularMasks] = texture;
+
+                if (Regex.IsMatch(name, CMaterialParams2.RegexEmissive, RegexOptions.IgnoreCase))
+                    parameters.Textures[CMaterialParams2.FallbackEmissive] = texture;
+
+                parameters.Textures[name] = texture;
             }
 
             foreach (var vectorParameter in VectorParameterValues)
@@ -269,13 +282,6 @@ namespace CUE4Parse.UE4.Assets.Exports.Material
 
             foreach (var scalarParameter in ScalarParameterValues)
                 parameters.Scalars[scalarParameter.Name] = scalarParameter.ParameterValue;
-
-            if (StaticParameters != null)
-                foreach (var switchParameter in StaticParameters.StaticSwitchParameters)
-                    parameters.Switchs[switchParameter.Name] = switchParameter.Value;
-
-            if (BasePropertyOverrides != null)
-                parameters.IsTransparent = BasePropertyOverrides.BlendMode == EBlendMode.BLEND_Translucent;
         }
 
         public override void AppendReferencedTextures(IList<UUnrealMaterial> outTextures, bool onlyRendered)

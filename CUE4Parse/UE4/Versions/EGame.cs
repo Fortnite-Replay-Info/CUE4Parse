@@ -24,13 +24,17 @@ namespace CUE4Parse.UE4.Versions
         GAME_UE4_13 = GameUtils.GameUe4Base + 13 << 4,
             GAME_StateOfDecay2 = GAME_UE4_13 + 1,
         GAME_UE4_14 = GameUtils.GameUe4Base + 14 << 4,
+            GAME_TEKKEN7 = GAME_UE4_14 + 1,
         GAME_UE4_15 = GameUtils.GameUe4Base + 15 << 4,
         GAME_UE4_16 = GameUtils.GameUe4Base + 16 << 4,
             GAME_PlayerUnknownsBattlegrounds = GAME_UE4_16 + 1,
-            GAME_LifeIsStrange2 = GAME_UE4_16 + 2,
+            GAME_TrainSimWorld2020 = GAME_UE4_16 + 2,
         GAME_UE4_17 = GameUtils.GameUe4Base + 17 << 4,
+            GAME_LifeIsStrange2 = GAME_UE4_17 + 1,
         GAME_UE4_18 = GameUtils.GameUe4Base + 18 << 4,
             GAME_KingdomHearts3 = GAME_UE4_18 + 1,
+            GAME_FinalFantasy7Remake = GAME_UE4_18 + 2,
+            GAME_AceCombat7 = GAME_UE4_18 + 3,
         GAME_UE4_19 = GameUtils.GameUe4Base + 19 << 4,
             GAME_Paragon = GAME_UE4_19 + 1,
         GAME_UE4_20 = GameUtils.GameUe4Base + 20 << 4,
@@ -51,12 +55,14 @@ namespace CUE4Parse.UE4.Versions
             GAME_Valorant = GAME_UE4_26 + 3,
             GAME_TowerOfFantasy = GAME_UE4_26 + 4,
             GAME_Dauntless = GAME_UE4_26 + 5,
-
+            GAME_TheDivisionResurgence = GAME_UE4_26 + 6,
         GAME_UE4_27 = GameUtils.GameUe4Base + 27 << 4,
             GAME_Splitgate = GAME_UE4_27 + 1,
             GAME_MeetYourMaker = GAME_UE4_27 + 2,
+            GAME_HYENAS = GAME_UE4_27 + 3,
+        GAME_UE4_28 = GameUtils.GameUe4Base + 28 << 4,
 
-        GAME_UE4_LATEST = GAME_UE4_27,
+        GAME_UE4_LATEST = GAME_UE4_28,
 
         // TODO Figure out the enum name for UE5 Early Access
         // The commit https://github.com/EpicGames/UnrealEngine/commit/cf116088ae6b65c1701eee99288e43c7310d6bb1#diff-6178e9d97c98e321fc3f53770109ea7f6a8ea7a86cac542717a81922f2f93613R723
@@ -90,8 +96,8 @@ namespace CUE4Parse.UE4.Versions
             {
                 return game switch
                 {
-                    EGame.GAME_UE5_0 => new FPackageFileVersion(522, 1004),
-                    EGame.GAME_UE5_1 => new FPackageFileVersion(522, 1008),
+                    < EGame.GAME_UE5_1 => new FPackageFileVersion(522, 1004),
+                    < EGame.GAME_UE5_2 => new FPackageFileVersion(522, 1008),
                     _ => new FPackageFileVersion((int) EUnrealEngineObjectUE4Version.AUTOMATIC_VERSION, (int) EUnrealEngineObjectUE5Version.AUTOMATIC_VERSION)
                 };
             }

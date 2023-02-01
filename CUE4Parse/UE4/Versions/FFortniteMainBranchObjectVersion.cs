@@ -4,7 +4,7 @@ using CUE4Parse.UE4.Readers;
 namespace CUE4Parse.UE4.Versions
 {
     // Custom serialization version for changes made in the //Fortnite/Main stream
-    public class FFortniteMainBranchObjectVersion
+    public static class FFortniteMainBranchObjectVersion
     {
         public enum Type
         {
@@ -261,8 +261,11 @@ namespace CUE4Parse.UE4.Versions
             // Fixed localization gathering for external actor packages
             FixedLocalizationGatherForExternalActorPackage,
 
-		    // -----<new versions can be added above this line>-------------------------------------------------
-		    VersionPlusOne,
+            // Change HLODActors to RuntimeCells mapping to use a GUID instead of the cell name
+            WorldPartitionHLODActorUseSourceCellGuid,
+
+            // -----<new versions can be added above this line>-------------------------------------------------
+            VersionPlusOne,
 		    LatestVersion = VersionPlusOne - 1
         }
 
@@ -283,7 +286,9 @@ namespace CUE4Parse.UE4.Versions
                 < EGame.GAME_UE4_24 => Type.SupportVirtualBoneInRetargeting,
                 < EGame.GAME_UE4_26 => Type.AnimLayerGuidConformation,
                 < EGame.GAME_UE4_27 => Type.ChaosSolverPropertiesMoved,
-                < EGame.GAME_UE5_0 => Type.BPGCCookedEditorTags,
+                < EGame.GAME_UE5_0 => Type.RemoveLandscapeWaterInfo,
+                < EGame.GAME_UE5_1 => Type.GravityOverrideDefinedInWorldSpace,
+                < EGame.GAME_UE5_2 => Type.WorldPartitionHLODActorDescSerializeStats,
                 _ => Type.LatestVersion
             };
         }

@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Objects.Core.Math;
+using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Assets.Exports.Material
 {
@@ -21,7 +22,7 @@ namespace CUE4Parse.UE4.Assets.Exports.Material
         public const string FallbackEmissive = "PM_Emissive";
 
 
-        public const string RegexDiffuse = ".*(?:Diff|_Tex|_Albedo|_Base_?Color).*|(?:_D|_DIF|_DM|_C|_CM)$";
+        public const string RegexDiffuse = ".*(?:Diff|_Tex|_?Albedo|_Base_?Color).*|(?:_D|_DIF|_DM|_C|_CM)$";
         public const string RegexNormals = "^NO_|.*Norm.*|(?:_N|_NM|_NRM)$";
         public const string RegexSpecularMasks = "^SP_|.*(?:Specu|_S_).*|(?:_S|_LP|_PAK)$";
         public const string RegexEmissive = "^.*Emiss.*|(?:_E|_EM)$";
@@ -31,7 +32,10 @@ namespace CUE4Parse.UE4.Assets.Exports.Material
         public bool HasTopSpecularMasks => HasTopTexture(SpecularMasks[0]);
         public bool HasTopEmissive => HasTopTexture(Emissive[0]);
 
-        public bool IsTransparent = false;
+        public EBlendMode BlendMode = EBlendMode.BLEND_Opaque;
+        public EMaterialShadingModel ShadingModel = EMaterialShadingModel.MSM_Unlit;
+
+        public bool IsTranslucent => BlendMode == EBlendMode.BLEND_Translucent;
         public bool IsNull => Textures.Count == 0;
 
         /// <summary>
@@ -43,10 +47,10 @@ namespace CUE4Parse.UE4.Assets.Exports.Material
             new []
             {
                 "Trunk_BaseColor", "ShadedDiffuse",
-                "Background Diffuse", "BG Diffuse Texture", "Diffuse", "Diffuse_1", "DiffuseTexture", "Diffuse A", "Diffuse Top", "Diffuse Side", "Diffuse Base", "Diffuse Base Map", "DiffuseLayer1",
+                "Background Diffuse", "BG Diffuse Texture", "Diffuse", "Diffuse_1", "DiffuseTexture", "DiffuseMap", "Diffuse A", "Diffuse Top", "Diffuse Side", "Diffuse Base", "Diffuse Base Map", "DiffuseLayer1",
                 "Albedo", "ALB", "TextureAlbedo",
                 "Base Color Texture", "BaseColorTexture", "Base Color", "BaseColor", "Base Texture Color", "BaseColorA", "BC", "Color", "CO", "CO_", "CO_1", "Base_CO",
-                "Tex_Color", "Tex_BaseColor", "AlbedMap", "Tex_Colormap",
+                "Tex", "Tex_Color", "TexColor", "Tex_BaseColor", "AlbedMap", "Tex_Colormap",
                 "Decal_Texture", "PetalDetailMap", "CliffTexture", "M1_T_BC"
             },
             new []{ "Background Diffuse 2", "Diffuse_Texture_2", "DiffuseLayer2", "Diffuse B", "BaseColorB", "CO_2", "M2_T_BC" },
@@ -63,7 +67,7 @@ namespace CUE4Parse.UE4.Assets.Exports.Material
             {
                 "Trunk_Normal",
                 "Normals", "Normal", "NormalA", "NormalTexture", "Normal Texture", "NormalMap", "T_Normal", "Normals Top", "Normals Side", "Fallback Normal",
-                "Normal Base", "TextureNormal", "Tex_BakedNormal", "BakedNormalMap", "Base Texture Normal", "Normal Base Map",
+                "Normal Base", "TextureNormal", "Tex_BakedNormal", "TexNor", "BakedNormalMap", "Base Texture Normal", "Normal Base Map",
                 "NM", "NM_1", "Base_NM", "NRM", "T_NRM", "M1_T_NRM", "Base NRM", "NRM Base",
                 "Texture A Normal", "CliffNormal"
             },
@@ -82,9 +86,9 @@ namespace CUE4Parse.UE4.Assets.Exports.Material
                 "Trunk_Specular", "PackedTexture",
                 "SpecularMasks", "Specular", "SpecMap", "T_Specular", "Specular Top", "Specular Side",
                 "MG", "ORM", "MRAE", "MRAS", "MRA", "MRA A", "MRS", "LP", "LP_1", "Base_LP",
-                "TextureRMA", "Tex_MultiMask", "Tex_Multi", "MultiMaskMap", "Base Texture RMAO",
+                "TextureRMA", "Tex_MultiMask", "Tex_Multi", "TexMRC", "TexMRA", "TexRCN", "MultiMaskMap", "Base Texture RMAO",
                 "Pack", "PAK", "T_PAK", "M1_T_PAK",
-                "Cliff Spec Texture"
+                "Cliff Spec Texture", "PhysicalMap", "KizokMap"
             },
             new []{ "SpecularMasks_2", "MRA B", "LP_2", "M2_T_PAK" },
             new []{ "SpecularMasks_3", "MRA C", "LP_3", "M3_T_PAK" },
@@ -99,7 +103,7 @@ namespace CUE4Parse.UE4.Assets.Exports.Material
             new []
             {
                 "Emissive", "EmissiveTexture", "EmissiveColorTexture", "EmissiveColor", "EmissiveMask",
-                "EmmisiveColor_A", "TextureEmissive"
+                "EmmisiveColor_A", "TextureEmissive", "TexEm"
             },
             new []{ "L1_Emissive", "EmmisiveColor_B" },
             new []{ "L2_Emissive", "EmmisiveColor_C" },
@@ -128,17 +132,18 @@ namespace CUE4Parse.UE4.Assets.Exports.Material
         public static readonly string[][] EmissiveColors = {
             new []
             {
-                "Emissive", "Emissive Color", "EmissiveColor", "EMI"
+                "Emissive", "Emissive Color", "EmissiveColor", "EMI", "EmColor", "Color"
             },
-            new []{ "Emissive1" },
-            new []{ "Emissive2" },
-            new []{ "Emissive3" },
-            new []{ "Emissive4" },
-            new []{ "Emissive5" },
-            new []{ "Emissive6" },
-            new []{ "Emissive7" }
+            new []{ "Emissive1", "Color01" },
+            new []{ "Emissive2", "Color02" },
+            new []{ "Emissive3", "Color03" },
+            new []{ "Emissive4", "Color04" },
+            new []{ "Emissive5", "Color05" },
+            new []{ "Emissive6", "Color06" },
+            new []{ "Emissive7", "Color07" }
         };
 
+        [JsonIgnore]
         public readonly Dictionary<string, UUnrealMaterial> Textures = new ();
         public readonly Dictionary<string, FLinearColor> Colors = new ();
         public readonly Dictionary<string, float> Scalars = new ();
@@ -268,7 +273,15 @@ namespace CUE4Parse.UE4.Assets.Exports.Material
         {
             foreach (var property in properties)
             {
-                if (property.Name.Text is "Parent" or "TextureParameterValues" or "VectorParameterValues" or "ScalarParameterValues")
+                if (property.Name.Text is "Parent" or
+                    "TextureParameterValues" or
+                    "VectorParameterValues" or
+                    "ScalarParameterValues" or
+                    "StaticParameters" or
+                    "CachedReferencedTextures" or
+                    "TextureStreamingData" or
+                    "BlendMode" or
+                    "ShadingModel")
                     continue;
 
                 Properties[property.Name.Text] = property.Tag?.GenericValue;

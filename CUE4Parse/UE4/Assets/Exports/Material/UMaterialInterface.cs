@@ -16,28 +16,30 @@ namespace CUE4Parse.UE4.Assets.Exports.Material
     public class UMaterialInterface : UUnrealMaterial
     {
         //I think those aren't used in UE4 but who knows
-        public UTexture? FlattenedTexture;
-        public UTexture? MobileBaseTexture;
-        public UTexture? MobileNormalTexture;
+        //to delete
         public bool bUseMobileSpecular;
         public float MobileSpecularPower = 16.0f;
         public EMobileSpecularMask MobileSpecularMask = EMobileSpecularMask.MSM_Constant;
+        public UTexture? FlattenedTexture;
+        public UTexture? MobileBaseTexture;
+        public UTexture? MobileNormalTexture;
         public UTexture? MobileMaskTexture;
-        public FMaterialTextureInfo[] TextureStreamingData;
+
         public FStructFallback? CachedExpressionData;
+        public FMaterialTextureInfo[] TextureStreamingData = Array.Empty<FMaterialTextureInfo>();
         public List<FMaterialResource> LoadedMaterialResources = new();
 
         public override void Deserialize(FAssetArchive Ar, long validPos)
         {
             base.Deserialize(Ar, validPos);
+            bUseMobileSpecular = GetOrDefault<bool>(nameof(bUseMobileSpecular));
+            MobileSpecularPower = GetOrDefault<float>(nameof(MobileSpecularPower));
+            MobileSpecularMask = GetOrDefault<EMobileSpecularMask>(nameof(MobileSpecularMask));
             FlattenedTexture = GetOrDefault<UTexture>(nameof(FlattenedTexture));
             MobileBaseTexture = GetOrDefault<UTexture>(nameof(MobileBaseTexture));
             MobileNormalTexture = GetOrDefault<UTexture>(nameof(MobileNormalTexture));
-            bUseMobileSpecular = GetOrDefault<bool>(nameof(bUseMobileSpecular));
-            MobileSpecularPower = GetOrDefault(nameof(MobileNormalTexture), 16.0f);
-            MobileSpecularMask = GetOrDefault<EMobileSpecularMask>(nameof(MobileSpecularMask));
-            MobileNormalTexture = GetOrDefault<UTexture>(nameof(MobileNormalTexture));
-            MobileMaskTexture = GetOrDefault<UTexture>(nameof(MobileNormalTexture));
+            MobileMaskTexture = GetOrDefault<UTexture>(nameof(MobileMaskTexture));
+
             TextureStreamingData = GetOrDefault(nameof(TextureStreamingData), Array.Empty<FMaterialTextureInfo>());
 
             var bSavedCachedExpressionData = FUE5ReleaseStreamObjectVersion.Get(Ar) >= FUE5ReleaseStreamObjectVersion.Type.MaterialInterfaceSavedCachedData && Ar.ReadBoolean();
@@ -67,7 +69,7 @@ namespace CUE4Parse.UE4.Assets.Exports.Material
             parameters.MobileSpecularMask = MobileSpecularMask;
         }
 
-        public override void GetParams(CMaterialParams2 parameters)
+        public override void GetParams(CMaterialParams2 parameters, EMaterialFormat format)
         {
             for (int i = 0; i < TextureStreamingData.Length; i++)
             {
@@ -121,8 +123,27 @@ namespace CUE4Parse.UE4.Assets.Exports.Material
 
             if (materialParameters.TryGetValue(out FPackageIndex[] textureValues, "TextureValues") &&
                 runtimeEntries[2].TryGetValue(out FMaterialParameterInfo[] textureParameterInfos, "ParameterInfos"))
+            {
                 for (int i = 0; i < textureParameterInfos.Length; i++)
-                    parameters.Textures[textureParameterInfos[i].Name.Text] = textureValues[i].Load<UTexture>();
+                {
+                    var name = textureParameterInfos[i].Name.Text;
+                    if (!textureValues[i].TryLoad(out UTexture texture)) continue;
+
+                    if (Regex.IsMatch(name, CMaterialParams2.RegexDiffuse, RegexOptions.IgnoreCase))
+                        parameters.Textures[CMaterialParams2.FallbackDiffuse] = texture;
+
+                    if (Regex.IsMatch(name, CMaterialParams2.RegexNormals, RegexOptions.IgnoreCase))
+                        parameters.Textures[CMaterialParams2.FallbackNormals] = texture;
+
+                    if (Regex.IsMatch(name, CMaterialParams2.RegexSpecularMasks, RegexOptions.IgnoreCase))
+                        parameters.Textures[CMaterialParams2.FallbackSpecularMasks] = texture;
+
+                    if (Regex.IsMatch(name, CMaterialParams2.RegexEmissive, RegexOptions.IgnoreCase))
+                        parameters.Textures[CMaterialParams2.FallbackEmissive] = texture;
+
+                    parameters.Textures[name] = texture;
+                }
+            }
         }
 
         public void DeserializeInlineShaderMaps(FArchive Ar, ICollection<FMaterialResource> loadedResources)

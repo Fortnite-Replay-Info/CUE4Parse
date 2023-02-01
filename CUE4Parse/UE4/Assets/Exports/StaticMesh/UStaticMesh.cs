@@ -20,17 +20,19 @@ namespace CUE4Parse.UE4.Assets.Exports.StaticMesh
         public FStaticMeshRenderData? RenderData { get; private set; }
         public FStaticMaterial[]? StaticMaterials { get; private set; }
         public ResolvedObject?[] Materials { get; private set; } // UMaterialInterface[]
+        public int LODForCollision { get; private set; }
 
         public override void Deserialize(FAssetArchive Ar, long validPos)
         {
             base.Deserialize(Ar, validPos);
             Materials = Array.Empty<ResolvedObject>();
+            LODForCollision = GetOrDefault(nameof(LODForCollision), 0);
 
             var stripDataFlags = Ar.Read<FStripDataFlags>();
             bCooked = Ar.ReadBoolean();
             BodySetup = new FPackageIndex(Ar);
 
-            if (Ar.Game != EGame.GAME_GearsOfWar4 && Ar.Ver >= EUnrealEngineObjectUE4Version.STATIC_MESH_STORE_NAV_COLLISION)
+            if (Ar.Game != EGame.GAME_GearsOfWar4 && Ar.Game != EGame.GAME_TEKKEN7 && Ar.Ver >= EUnrealEngineObjectUE4Version.STATIC_MESH_STORE_NAV_COLLISION)
                 NavCollision = new FPackageIndex(Ar);
 
             if (!stripDataFlags.IsEditorDataStripped())
@@ -68,13 +70,17 @@ namespace CUE4Parse.UE4.Assets.Exports.StaticMesh
                 if (bHasSpeedTreeWind)
                 {
                     Ar.Position = validPos;
-                    return;
+                    // return;
                 }
 
                 if (FEditorObjectVersion.Get(Ar) >= FEditorObjectVersion.Type.RefactorMeshEditorMaterials)
                 {
                     // UE4.14+ - "Materials" are deprecated, added StaticMaterials
-                    StaticMaterials = Ar.ReadArray(() => new FStaticMaterial(Ar));
+                    if (bHasSpeedTreeWind)
+                        StaticMaterials = GetOrDefault("StaticMaterials",  Array.Empty<FStaticMaterial>());
+                    else
+                        StaticMaterials = Ar.ReadArray(() => new FStaticMaterial(Ar));
+
                     Materials = new ResolvedObject[StaticMaterials.Length];
                     for (var i = 0; i < Materials.Length; i++)
                     {

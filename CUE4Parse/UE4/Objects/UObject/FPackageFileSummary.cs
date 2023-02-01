@@ -33,6 +33,7 @@ namespace CUE4Parse.UE4.Objects.UObject
     {
         public const uint PACKAGE_FILE_TAG = 0x9E2A83C1U;
         public const uint PACKAGE_FILE_TAG_SWAPPED = 0xC1832A9EU;
+        public const uint PACKAGE_FILE_TAG_ACE7 = 0x37454341U; // ACE7
         private const uint PACKAGE_FILE_TAG_ONE = 0x00656E6FU; // SOD2
 
         public readonly uint Tag;
@@ -74,6 +75,7 @@ namespace CUE4Parse.UE4.Objects.UObject
         public readonly int PreloadDependencyOffset;
         public readonly int NamesReferencedFromExportDataCount;
         public readonly long PayloadTocOffset;
+        public readonly int DataResourceOffset;
 
         public FPackageFileSummary()
         {
@@ -247,7 +249,7 @@ namespace CUE4Parse.UE4.Objects.UObject
 
             ThumbnailTableOffset = Ar.Read<int>();
 
-            if (Ar.Game == EGame.GAME_Valorant) Ar.Position += 8;
+            if (Ar.Game is EGame.GAME_Valorant or EGame.GAME_HYENAS) Ar.Position += 8;
 
             Guid = Ar.Read<FGuid>();
 
@@ -399,6 +401,7 @@ namespace CUE4Parse.UE4.Objects.UObject
 
             NamesReferencedFromExportDataCount = FileVersionUE >= EUnrealEngineObjectUE5Version.NAMES_REFERENCED_FROM_EXPORT_DATA ? Ar.Read<int>() : NameCount;
             PayloadTocOffset = FileVersionUE >= EUnrealEngineObjectUE5Version.PAYLOAD_TOC ? Ar.Read<long>() : -1;
+            DataResourceOffset = FileVersionUE >= EUnrealEngineObjectUE5Version.DATA_RESOURCES ? Ar.Read<int>() : -1;
 
             if (Tag == PACKAGE_FILE_TAG_ONE && Ar is FAssetArchive assetAr)
             {
